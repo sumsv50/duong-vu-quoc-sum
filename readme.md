@@ -1,29 +1,34 @@
 # 99Tech Code Challenge #1 #
 
-## Problem 4
+This repository contains solutions to the 99Tech Code Challenge #1. Each problem is located in its own folder with a dedicated README.md file providing more information.
 
-### Folder Structure
+## Problems
 
-    problem4/ 
-    ├── solutions.ts        # Contains the implementations of the functions 
-    ├── solutions.test.ts   # Contains the unit tests for the functions 
-    ├── tsconfig.json       # TypeScript configuration file 
-    └── package.json        # Node.js dependencies and scripts
+### Problem 4
 
-### Running Tests
+This problem involves implementing functions to calculate the summation to a given integer `n`. The solution includes three different approaches and their corresponding unit tests.
 
-To run the tests for Problem 4, follow these steps:
+For more details, please refer to the `README.md` file in the `src/problem4` folder.
 
-1. **Install Dependencies**
-  Make sure you have Node.js and npm installed. Then, navigate to the `src/problem4` directory and install the dependencies:
+### Problem 5
 
-  ```sh
-  cd src/problem4
-  npm install
-  ```
-2. **Run Tests**
-  After installing the dependencies, you can run the tests using the following command:
-  ```sh
-  npx jest
-  ```
-  This will execute all the test cases defined in solutions.test.ts and provide you with the results
+This problem involves developing a backend server with ExpressJS and TypeScript. The server provides a set of CRUD interfaces that allow a user to interact with the service. The solution follows the controller-service-repository pattern and integrates with a PostgreSQL database.
+
+For more details, please refer to the `README.md` file in the `src/problem5` folder.
+
+## Getting Started
+
+To get started with any of the problems, navigate to the respective problem folder and follow the instructions provided in the `README.md` file.
+
+## Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+## Installation
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/sumsv50/duong-vu-quoc-sum.git
+   cd duong-vu-quoc-sum

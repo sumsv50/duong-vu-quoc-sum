@@ -14,6 +14,13 @@ A robust RESTful API built with Express.js, TypeScript, and PostgreSQL that impl
 - Error handling middleware
 - Database migrations
 
+## Live demo
+
+The service is already deployed and accessible at https://duong-vu-quoc-sum.onrender.com. Feel free to give it a try!
+
+*(It may take a long time on the first access due to the sleep mechanism of Render's free tier.)*
+
+
 ## Prerequisites
 
 - Node.js (v14 or higher)

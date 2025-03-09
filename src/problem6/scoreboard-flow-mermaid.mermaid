@@ -1,0 +1,102 @@
+sequenceDiagram
+    participant Client
+    participant APIGateway as API Gateway
+    participant AuthService as Authentication Service
+    participant ScoreService as Score Processing Service
+    participant Database
+    participant Redis as Redis (Pub/Sub & Cache)
+    participant WebSocket as WebSocket Service
+    participant ConnectedClients as Connected Clients
+
+    %% Initial setup - WebSocket Connection
+    Client->>APIGateway: WebSocket connection request
+    APIGateway->>WebSocket: Forward WebSocket connection
+    WebSocket->>AuthService: Validate authentication token
+    AuthService-->>WebSocket: Authentication result
+    
+    alt Authentication Failed
+        WebSocket-->>Client: Close connection (code 4001)
+    else Authentication Successful
+        WebSocket-->>Client: Connection established
+        WebSocket->>Redis: Register client connection
+        WebSocket->>Client: Send connection_established event
+        
+        %% Initial leaderboard data
+        WebSocket->>Redis: Retrieve current leaderboard
+        Redis-->>WebSocket: Current leaderboard data
+        WebSocket->>Client: Send full leaderboard
+    end
+    
+    %% Score update flow
+    Client->>APIGateway: POST /api/v1/scores/update
+    Note over Client,APIGateway: Includes actionId, timestamp, metadata
+    
+    APIGateway->>AuthService: Authenticate request
+    AuthService-->>APIGateway: Authentication result
+    
+    alt Authentication Failed
+        APIGateway-->>Client: 401 Unauthorized
+    else Authentication Successful
+        APIGateway->>ScoreService: Forward score update request
+        
+        ScoreService->>Database: Check if action already processed
+        Database-->>ScoreService: Action status
+        
+        alt Action Already Processed
+            ScoreService-->>APIGateway: Duplicate action
+            APIGateway-->>Client: 409 Conflict
+        else Action Not Yet Processed
+            ScoreService->>ScoreService: Validate action
+            
+            alt Action Invalid
+                ScoreService-->>APIGateway: Invalid action
+                APIGateway-->>Client: 400 Bad Request
+            else Action Valid
+                ScoreService->>Database: Mark action as processed
+                ScoreService->>Database: Get current user score
+                Database-->>ScoreService: Current score
+                ScoreService->>ScoreService: Calculate new score
+                ScoreService->>Database: Update user score
+                
+                ScoreService->>Redis: Get current leaderboard
+                Redis-->>ScoreService: Current leaderboard
+                ScoreService->>ScoreService: Check if leaderboard affected
+                
+                alt Leaderboard Affected
+                    ScoreService->>Redis: Update cached leaderboard
+                    ScoreService->>Redis: Publish leaderboard update event
+                    Note over Redis,WebSocket: Asynchronous messaging
+                    Redis--)WebSocket: Leaderboard update notification
+                    WebSocket->>Redis: Get updated leaderboard data
+                    Redis-->>WebSocket: Updated leaderboard
+                    WebSocket->>ConnectedClients: Broadcast leaderboard update
+                end
+                
+                ScoreService-->>APIGateway: Score updated successfully
+                APIGateway-->>Client: 200 OK with new score and rank
+            end
+        end
+    end
+
+    %% Leaderboard retrieval flow via REST
+    Client->>APIGateway: GET /api/v1/leaderboard
+    APIGateway->>AuthService: Authenticate request
+    AuthService-->>APIGateway: Authentication result
+    
+    alt Authentication Failed
+        APIGateway-->>Client: 401 Unauthorized
+    else Authentication Successful
+        APIGateway->>ScoreService: Request leaderboard
+        ScoreService->>Redis: Get current leaderboard
+        Redis-->>ScoreService: Leaderboard data
+        ScoreService-->>APIGateway: Leaderboard data
+        APIGateway-->>Client: Leaderboard response
+    end
+    
+    %% Token expiration flow
+    AuthService--)WebSocket: Token expiration notification
+    WebSocket->>Client: token_expiring event
+    Client->>APIGateway: Request token renewal
+    APIGateway->>AuthService: Process token renewal
+    AuthService-->>APIGateway: New token
+    APIGateway-->>Client: New token response

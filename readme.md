@@ -16,6 +16,13 @@ This problem involves developing a backend server with ExpressJS and TypeScript.
 
 For more details, please refer to the `README.md` file in the `src/problem5` folder.
 
+### Problem 6
+
+This problem involves designing a Live Scoreboard API Module. The solution includes secure score updates, real-time leaderboard, authorization, and performance optimization.
+
+For more details, please refer to the `README.md` file in the `src/problem6` folder.
+
+
 ## Getting Started
 
 To get started with any of the problems, navigate to the respective problem folder and follow the instructions provided in the `README.md` file.
